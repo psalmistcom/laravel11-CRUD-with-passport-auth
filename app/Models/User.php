@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\{Client, HasApiTokens, Token};
@@ -22,6 +23,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'full_name',
+        'status',
         'email',
         'password',
     ];
@@ -49,5 +51,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function otps(): MorphMany
+    {
+        return $this->morphMany(OtpVerification::class, 'otpverifiable');
     }
 }
