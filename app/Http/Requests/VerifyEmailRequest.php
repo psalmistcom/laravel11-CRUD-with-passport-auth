@@ -11,7 +11,7 @@ class VerifyEmailRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,9 @@ class VerifyEmailRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'code' => 'required|digits:6',
+            'otp_verification_id' => 'required|integer',
+            'email' => 'required|email|exists:users,email'
         ];
     }
 }

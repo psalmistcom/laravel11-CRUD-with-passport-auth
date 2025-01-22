@@ -4,9 +4,11 @@ namespace App\Http\Controllers\API;
 
 use App\Enum\StatusEnum;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\ResendOtpRequest;
 use App\Http\Requests\VerifyEmailRequest;
+use App\Http\Resources\UserResource;
 use App\Models\OtpVerification;
 use App\Models\User;
 use App\Notifications\NewCustomerNotification;
@@ -44,9 +46,34 @@ class AuthController extends Controller
         }
     }
 
-    public function login()
+    public function login(LoginRequest $request): JsonResponse
     {
-        //
+        try {
+            $customer = User::query()->whereEmail($request->input('email'))
+                ->first();
+
+            if (!$customer || !Hash::check($request->input('password'), $customer->password)) {
+                return $this->error('Invalid credentials provided');
+            }
+
+            $response['token'] = $customer->createToken('user')->accessToken;
+            $response['user'] = UserResource::make($customer);
+
+            $customer->save();
+
+            return $this->successResponse($response, 'Login succesful');
+        } catch (Exception $th) {
+            return $this->fatalErrorResponse($th);
+        }
+    }
+
+
+    public function logout(Request $request): JsonResponse
+    {
+        $request->user()->token()->revoke();
+        $request->user()->logged_out_at = now();
+        $request->user()->save();
+        return $this->success('Succesfully logged out');
     }
 
     /**
